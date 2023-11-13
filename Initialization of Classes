@@ -1,0 +1,100 @@
+#include <iostream>
+#include <string>
+#include <vector>
+
+class Pilot {
+public:
+    std::string name;
+    int experience;
+    int accuracy;
+    int handling;
+
+    Pilot(const std::string& n, int exp, int acc, int hand)
+        : name(n), experience(exp), accuracy(acc), handling(hand) {}
+
+    void choosePilot() {
+        std::cout << "Selected Pilot: " << name << std::endl;
+        std::cout << "Experience: " << experience << "/10, "
+                  << "Accuracy: " << accuracy << "/5, "
+                  << "Handling: " << handling << "/5" << std::endl;
+    }
+};
+
+class CoPilot {
+public:
+    std::string name;
+    int experience;
+    int communication;
+    int reflexes;
+
+    CoPilot(const std::string& n, int exp, int comm, int refl)
+        : name(n), experience(exp), communication(comm), reflexes(refl) {}
+
+    void chooseCoPilot() {
+        std::cout << "Selected Co-Pilot: " << name << std::endl;
+        std::cout << "Experience: " << experience << "/10, "
+                  << "Communication: " << communication << "/5, "
+                  << "Reflexes: " << reflexes << "/5" << std::endl;
+    }
+};
+
+class Plane {
+public:
+    std::string model;
+    int maxSpeed;
+    bool requiresCoPilot;
+    int maneuverability;
+
+    Plane(const std::string& m, int speed, bool requiresCp, int maneuver)
+        : model(m), maxSpeed(speed), requiresCoPilot(requiresCp), maneuverability(maneuver) {}
+
+    void choosePlane() {
+        std::cout << "Selected Plane: " << model << std::endl;
+        std::cout << "Max Speed: " << maxSpeed << " mph, "
+                  << "Requires Co-Pilot: " << (requiresCoPilot ? "Yes" : "No") << ", "
+                  << "Maneuverability: " << maneuverability << "/5" << std::endl;
+    }
+};
+
+class RacingGame {
+public:
+    void startGame(Pilot& pilot, CoPilot& coPilot, Plane& plane) {
+        std::cout << "Game started with:" << std::endl;
+        pilot.choosePilot();
+        if (plane.requiresCoPilot) {
+            coPilot.chooseCoPilot();
+        }
+        plane.choosePlane();
+        // Add racing logic here
+    }
+};
+
+int main() {
+    // Creating instances of pilots, co-pilots, and planes
+    std::vector<Pilot> pilots = {
+        {"Maverick", 8, 5, 7},
+        {"Iceman", 6, 6, 6},
+        {"Rooster", 4, 6, 7},
+        {"Hangman", 4, 8, 5}
+    };
+
+    std::vector<CoPilot> coPilots = {
+        {"Goose", 7, 8, 7},
+        {"Bob", 4, 6, 9}
+    };
+
+    std::vector<Plane> planes = {
+        {"F-14", 1544, true, 3},
+        {"F-15ex", 1875, true, 2},
+        {"F-16", 1500, false, 5},
+        {"F-18", 1187, false, 4}
+    };
+
+    // Creating an instance of the game
+    RacingGame racingGame;
+
+    // Starting the game with selected pilot, co-pilot, and plane
+    racingGame.startGame(pilots[0], coPilots[0], planes[0]);
+
+    return 0;
+}
