@@ -1,24 +1,15 @@
+/*
+DiPerna, Glenn, Tyagi
+AERSP 424
+Final Project
+Main File
+ */
+
+
 #include <iostream>
 #include <string>
 #include <vector>
-
-class Pilot {
-public:
-    std::string name;
-    int experience;
-    int accuracy;
-    int handling;
-
-    Pilot(const std::string& n, int exp, int acc, int hand)
-        : name(n), experience(exp), accuracy(acc), handling(hand) {}
-
-    void choosePilot() {
-        std::cout << "Selected Pilot: " << name << std::endl;
-        std::cout << "Experience: " << experience << "/10, "
-                  << "Accuracy: " << accuracy << "/5, "
-                  << "Handling: " << handling << "/5" << std::endl;
-    }
-};
+#include "Pilot.h"
 
 class CoPilot {
 public:
@@ -70,31 +61,14 @@ public:
 };
 
 int main() {
-    // Creating instances of pilots, co-pilots, and planes
-    std::vector<Pilot> pilots = {
-        {"Maverick", 8, 5, 7},
-        {"Iceman", 6, 6, 6},
-        {"Rooster", 4, 6, 7},
-        {"Hangman", 4, 8, 5}
-    };
-
-    std::vector<CoPilot> coPilots = {
-        {"Goose", 7, 8, 7},
-        {"Bob", 4, 6, 9}
-    };
-
-    std::vector<Plane> planes = {
-        {"F-14", 1544, true, 3},
-        {"F-15ex", 1875, true, 2},
-        {"F-16", 1500, false, 5},
-        {"F-18", 1187, false, 4}
-    };
-
+    //Pilot p1("Maverick");
+    //cout << p1.getname() << " " <<p1.getaccuracy() << " " << p1.gethandling() << " " << p1.getexperience() << endl;
+    
     // Creating an instance of the game
-    RacingGame racingGame;
+    //RacingGame racingGame;
 
     // Starting the game with selected pilot, co-pilot, and plane
-    racingGame.startGame(pilots[0], coPilots[0], planes[0]);
+    //racingGame.startGame(pilots[0], coPilots[0], planes[0]);
 
     return 0;
 }
