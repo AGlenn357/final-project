@@ -8,6 +8,7 @@ Pilot Header File
 #pragma once //start of header file
 #include <iostream> //including input output library
 #include <string> //including string library
+#include <map> //including map library
 
 using namespace std; //using standard library
 
@@ -17,8 +18,9 @@ private: //private members
     int experience; //experience
     int accuracy; //accuracy
     int handling; //handline
+    //map<string, map<int, int>, map<int, int>, map<int, int>> stats;
 public:
-    Pilot(); //constructor
+    Pilot(string x); //constructor
     ~Pilot() {}; //deconstructor
     string getname(){ //getting name
         return name; //returning name
