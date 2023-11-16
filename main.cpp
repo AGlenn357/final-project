@@ -10,6 +10,7 @@ Main File
 #include <string>
 #include <vector>
 #include "Pilot.h"
+#include "logo.h"
 
 class CoPilot {
 public:
@@ -61,6 +62,9 @@ public:
 };
 
 int main() {
+
+    read_logo();
+
     //Pilot p1("Maverick");
     //cout << p1.getname() << " " <<p1.getaccuracy() << " " << p1.gethandling() << " " << p1.getexperience() << endl;
     
