@@ -26,7 +26,7 @@ public:
             return;
         }
 
-        // Create SDL window (you may need to adjust window dimensions)
+        // Create SDL window
         SDL_Window* window = SDL_CreateWindow("Racing Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_SHOWN);
         if (!window) {
             std::cerr << "SDL window creation failed: " << SDL_GetError() << std::endl;
@@ -122,5 +122,28 @@ public:
     // Function to check if the space bar is pressed using SDL
     bool isSpacePressed(SDL_Event& event) {
         return (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_SPACE);
+    }
+
+    // Function to calculate left-to-right plane speed and forward plane speed
+    void calculateSpeeds(Pilot& pilot, CoPilot& coPilot, Plane& plane) {
+        // Calculate left-to-right plane speed based on plane's maneuverability
+        l_r_plane_speed = plane.maneuverability * 0.6;
+
+        // Check if the plane has a co-pilot
+        if (plane.requiresCoPilot) {
+            // Add contributions from co-pilot's reflexes and communication
+            l_r_plane_speed = coPilot.reflexes * 0.3 + coPilot.communication * 0.5;
+        }
+
+        // Calculate forward plane speed based on plane's max speed, pilot's experience, and handling
+        forward_plane_speed = plane.maxSpeed * (5280.0 / 3600.0); // Convert maxSpeed from mph to ft/sec
+        forward_plane_speed /= 2500.0; // Divide forward_plane_speed by 2500
+        forward_plane_speed += 0.8 * pilot.getexperience() + 0.5 * pilot.gethandling(); // Add contributions from pilot's experience and handling
+
+        // Check if the plane has a co-pilot
+        if (plane.requiresCoPilot) {
+            // Add contributions from co-pilot's experience
+            forward_plane_speed += 0.8 * coPilot.experience;
+        }
     }
 };
