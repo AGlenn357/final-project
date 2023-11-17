@@ -1,0 +1,126 @@
+#include <iostream>
+#include <ctime>
+#include <cstdlib>
+#include <SDL.h>
+
+class Target {
+public:
+    int position;
+
+    Target(int pos) : position(pos) {}
+};
+
+class RacingGame {
+private:
+    double forward_plane_speed; // Speed attribute for the RacingGame in ft/sec
+    double l_r_plane_speed;     // Left-to-right plane speed in ft/sec
+
+public:
+    RacingGame() : forward_plane_speed(0), l_r_plane_speed(0) {}
+
+    // Function to simulate the racing logic
+    void simulateRace(Pilot& pilot, CoPilot& coPilot, Plane& plane) {
+        // Initialize SDL
+        if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+            std::cerr << "SDL initialization failed: " << SDL_GetError() << std::endl;
+            return;
+        }
+
+        // Create SDL window (you may need to adjust window dimensions)
+        SDL_Window* window = SDL_CreateWindow("Racing Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_SHOWN);
+        if (!window) {
+            std::cerr << "SDL window creation failed: " << SDL_GetError() << std::endl;
+            SDL_Quit();
+            return;
+        }
+
+        // Set up SDL renderer
+        SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+        if (!renderer) {
+            std::cerr << "SDL renderer creation failed: " << SDL_GetError() << std::endl;
+            SDL_DestroyWindow(window);
+            SDL_Quit();
+            return;
+        }
+
+        // Set the race distance to 30 miles
+        int raceDistance = 30;
+
+        // Calculate the number of iterations needed to cover the race distance
+        int iterations = (raceDistance * 5280) / forward_plane_speed; // Assuming 1 mile = 5280 units
+
+        // Simulate racing logic here
+        std::cout << "Race simulation started with plane speed: " << plane.maxSpeed << " mph..." << std::endl;
+
+        // Set the initial position of the plane at the bottom
+        int planePosition = 95; // Assuming a 100-unit vertical space, adjust as needed
+        int planeHorizontalPosition = 400; // Initial horizontal position
+
+        // SDL event structure for handling input
+        SDL_Event event;
+
+        // Simulate scrolling targets towards the plane at the calculated speed
+        for (int i = 0; i < iterations; ++i) {
+            handleInput(pilot, planeHorizontalPosition, event); // Handle player input
+
+            // Simulate shooting a projectile when the space bar is pressed
+            if (isSpacePressed(event)) {
+                std::cout << "Projectile shot!" << std::endl;
+                // Check if the projectile hits the target
+                if (rand() % 100 < pilot.getaccuracy() * 20) {
+                    std::cout << "Target Hit!" << std::endl;
+                } else {
+                    std::cout << "Missed Target." << std::endl;
+                }
+            }
+
+            // Simulate scrolling targets towards the plane at the calculated speed
+            for (double targetPosition = 0; targetPosition < planePosition; targetPosition += forward_plane_speed) {
+                // Display the scrolling targets and update game state
+                SDL_RenderClear(renderer);
+                SDL_RenderPresent(renderer);
+
+                // Introduce a short delay to make the simulation more readable
+                SDL_Delay(100);
+            }
+        }
+
+        std::cout << "Race simulation completed." << std::endl;
+
+        // Cleanup SDL
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+    }
+
+    // Function to handle player input using SDL
+    void handleInput(Pilot& pilot, int& planeHorizontalPosition, SDL_Event& event) {
+        while (SDL_PollEvent(&event)) {
+            switch (event.type) {
+                case SDL_QUIT:
+                    // Handle quit event
+                    break;
+                case SDL_KEYDOWN:
+                    // Handle keydown event
+                    switch (event.key.keysym.sym) {
+                        case SDLK_LEFT:
+                            // Move left
+                            planeHorizontalPosition = std::max(planeHorizontalPosition - static_cast<int>(l_r_plane_speed), 0);
+                            break;
+                        case SDLK_RIGHT:
+                            // Move right
+                            planeHorizontalPosition = std::min(planeHorizontalPosition + static_cast<int>(l_r_plane_speed), 800);
+                            break;
+                        // Add other cases for additional controls if needed
+                    }
+                    break;
+                // Add other event handling cases if needed
+            }
+        }
+    }
+
+    // Function to check if the space bar is pressed using SDL
+    bool isSpacePressed(SDL_Event& event) {
+        return (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_SPACE);
+    }
+};
