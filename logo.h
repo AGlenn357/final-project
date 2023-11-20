@@ -15,5 +15,5 @@ void read_logo() {  // main logo displayed at game's start
     cout << "   #    #    #  #####  #       ##  ##   ####  #    \n";
     cout << "   #    #    #  ####   #  # #  ##  ##   ##  # # \n";
     cout << "   #     ####   #       ####    ####    ##   ## \n";
-    cout << " \n              THE ULTIMATE RACE";
+    cout << " \n              THE ULTIMATE RACE\n";
 }
