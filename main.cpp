@@ -5,9 +5,14 @@ Final Project
 Main File
  */
 
-
+#include "Final_Project.h"
 #include <iostream>
 #include <string>
+#include <ctime>
+#include <cstdlib>
+#include <algorithm>
+#define SDL_MAIN_HANDLED
+#include <SDL.h>
 #include <vector>
 #include "Pilot.h"
 #include "logo.h"
@@ -25,8 +30,8 @@ public:
     void chooseCoPilot() {
         std::cout << "Selected Co-Pilot: " << name << std::endl;
         std::cout << "Experience: " << experience << "/10, "
-                  << "Communication: " << communication << "/5, "
-                  << "Reflexes: " << reflexes << "/5" << std::endl;
+            << "Communication: " << communication << "/10, "
+            << "Reflexes: " << reflexes << "/10" << std::endl;
     }
 };
 
@@ -43,14 +48,15 @@ public:
     void choosePlane() {
         std::cout << "Selected Plane: " << model << std::endl;
         std::cout << "Max Speed: " << maxSpeed << " mph, "
-                  << "Requires Co-Pilot: " << (requiresCoPilot ? "Yes" : "No") << ", "
-                  << "Maneuverability: " << maneuverability << "/5" << std::endl;
+            << "Requires Co-Pilot: " << (requiresCoPilot ? "Yes" : "No") << ", "
+            << "Maneuverability: " << maneuverability << "/5" << std::endl;
     }
 };
 
 class RacingGame {
 public:
-    void startGame(Pilot& pilot, CoPilot& coPilot, Plane& plane) {
+    void startGame(Pilot& pilot, CoPilot& 
+        coPilot, Plane& plane) {
         std::cout << "Game started with:" << std::endl;
         pilot.choosePilot();
         if (plane.requiresCoPilot) {
@@ -61,18 +67,37 @@ public:
     }
 };
 
-int main() {
+int main(int argc, char* argv[]) {
 
     read_logo();
 
-    //Pilot p1("Maverick");
-    //cout << p1.getname() << " " <<p1.getaccuracy() << " " << p1.gethandling() << " " << p1.getexperience() << endl;
-    
-    // Creating an instance of the game
-    //RacingGame racingGame;
+        std::string chosenPilotName;
 
-    // Starting the game with selected pilot, co-pilot, and plane
-    //racingGame.startGame(pilots[0], coPilots[0], planes[0]);
+        while (true) {
+            // Let the player choose their pilot
+            std::cout << "\nEnter the name of your pilot (Maverick, Iceman, Rooster, Hangman): ";
+            std::cin >> chosenPilotName;
 
-    return 0;
-}
+            // Convert the first letter of the entered name to uppercase
+            if (!chosenPilotName.empty()) {
+                chosenPilotName[0] = std::toupper(chosenPilotName[0]);
+            }
+
+            // Check if the entered name is one of the valid options
+            if (chosenPilotName == "Maverick" || chosenPilotName == "Iceman" || chosenPilotName == "Rooster" || chosenPilotName == "Hangman") {
+                break; // Valid input, exit the loop
+            }
+            else {
+                std::cout << "Invalid pilot name. Please choose from Maverick, Iceman, Rooster, or Hangman.\n";
+            }
+        }
+
+        // Create a Pilot object with the valid pilot name
+        Pilot playerPilot(chosenPilotName);
+
+        // Use the chosen pilot
+        playerPilot.choosePilot();
+
+        return 0;
+    }
+
