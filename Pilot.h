@@ -6,53 +6,24 @@ Pilot Header File
 */
 
 #pragma once //start of header file
-#include <iostream> //including input output library
-#include <string> //including string library
-#include <map> //including map library
+#include <iostream>
+#include <string>
+#include <map>
 
-using namespace std; //using standard library
+class Pilot {
+private:
+    std::string name;
+    int experience;
+    int accuracy;
+    int handling;
+    static std::map<std::string, std::tuple<int, int, int>> stats;
 
-class Pilot { //class Pilot
-private: //private members
-    string name; //name
-    int experience; //experience
-    int accuracy; //accuracy
-    int handling; //handline
-    //map<string, map<int, int>, map<int, int>, map<int, int>> stats;
 public:
-    Pilot(string x); //constructor
-    ~Pilot() {}; //deconstructor
-    string getname(){ //getting name
-        return name; //returning name
-    }
-    int getexperience() { //getting experience
-        return experience; //returning experience
-    }
-    int getaccuracy() { //getting accuracy
-        return accuracy; //returning accuracy
-    }
-    int gethandling() { //getting handling
-        return handling; //returning handling
-    }
-    void setname(string x) { //setting name
-        name = x; //set name
-    }
-    void setexperience(int x) { //setting experience
-        experience = x; //set experience
-    }
-    void setaccuracy(int x) { //setting accuracy
-        accuracy = x; //set accuracy
-    }
-    void sethandling(int x) { //setting handling
-        handling = x; //set handling
-    }
-    Pilot(const string& n, int exp, int acc, int hand)
-        : name(n), experience(exp), accuracy(acc), handling(hand) {}
+    Pilot(const std::string& n);
 
-    void choosePilot() {
-        std::cout << "Selected Pilot: " << name << std::endl;
-        std::cout << "Experience: " << experience << "/10, "
-                  << "Accuracy: " << accuracy << "/5, "
-                  << "Handling: " << handling << "/5" << std::endl;
-    }
+    std::string getname();
+    int getexperience();
+    int getaccuracy();
+    int gethandling();
+    void choosePilot();
 };
