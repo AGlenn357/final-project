@@ -3,37 +3,51 @@ DiPerna, Glenn, Tyagi
 AERSP 424
 Final Project
 Pilot .cpp File
-
+*/
 
 #include "Pilot.h"
-#include <map> //including map library
 
-using namespace std;
+std::map<std::string, std::tuple<int, int, int>> Pilot::stats;
 
-Pilot::Pilot(string x) {
-				name = x; //setting name value
-				stats.insert(make_pair("Maverick", map<int, int>()));
-				stats["Maverick"].insert(make_pair(8, map<int, int>());
-				stats["Maverick"][8].insert(5, 7);
-				
-				stats.insert(make_pair("Iceman", map<int, int>()));
-				stats["Iceman"].insert(make_pair(6, map<int, int>());
-				stats["Iceman"][6].insert(6, 6);
-																											
-				stats.insert(make_pair("Rooster", map<int, int>()));
-				stats["Rooster"].insert(make_pair(4, map<int, int>());
-				stats["Rooster"][4].insert(6, 7);
-				
-				stats.insert(make_pair("Hangman", map<int, int>()));
-				stats["Hangman"].insert(make_pair(4, map<int, int>());
-				stats["Hangman"][4].insert(8, 5);
-				
-				experience = stats[name];
-				accuracy = stats[name][experience];
-				handling = stats[name][experience][accuracy];
-				
-																												
-																												
-																								
+Pilot::Pilot(const std::string& x) {
+    name = x;
+
+    // Assuming initial values for each pilot
+    if (x == "Maverick") {
+        std::tie(experience, accuracy, handling) = std::make_tuple(8, 5, 7);
+
+    }
+    else if (x == "Iceman") {
+        std::tie(experience, accuracy, handling) = std::make_tuple(6, 6, 6);
+    }
+    else if (x == "Rooster") {
+        std::tie(experience, accuracy, handling) = std::make_tuple(4, 6, 7);
+    }
+    else if (x == "Hangman") {
+        std::tie(experience, accuracy, handling) = std::make_tuple(4, 8, 5);
+    }
 }
-*/
+
+std::string Pilot::getname() {
+    return name;
+}
+
+int Pilot::getexperience() {
+    return experience;
+}
+
+int Pilot::getaccuracy() {
+    return accuracy;
+}
+
+int Pilot::gethandling() {
+    return handling;
+}
+
+void Pilot::choosePilot() {
+    std::cout << "Selected Pilot: " << name << std::endl;
+    std::cout << "Experience: " << experience << "/10, "
+        << "Accuracy: " << accuracy << "/10, "
+        << "Handling: " << handling << "/10" << std::endl;
+}
+
