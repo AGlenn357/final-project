@@ -18,34 +18,8 @@ Main File
 #include <algorithm>
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
+#include "Racing_Game.h"
 
-// // RacingGame.h
-//#pragma once
-//
-//#include "Pilot.h"
-//#include "CoPilot.h"
-//#include "Plane.h"
-
-class RacingGame {
-public:
-    void startGame(Pilot& pilot, CoPilot& coPilot, Plane& plane);
-};
-
-
-// RacingGame.cpp
-// #include "RacingGame.h"
-
-void RacingGame::startGame(Pilot& pilot, CoPilot& coPilot, Plane& plane) {
-    std::cout << "Game started with:" << std::endl;
-    pilot.choosePilot();
-
-    if (plane.getRequiresCoPilot()) {
-        coPilot.chooseCoPilot();
-    }
-
-    plane.choosePlane();
-    // Add racing logic here
-}
 
 // function to convert entries to all lowercase for easy recognition
 std::string toLowerCase(const std::string& str) {
