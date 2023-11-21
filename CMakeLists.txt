@@ -1,4 +1,4 @@
-﻿# CMakeList.txt : CMake project for Final_Project, include source and define
+# CMakeList.txt : CMake project for Final_Project, include source and define
 
 # Add source to this project's executable.
 #include all header files in the current folder
@@ -8,7 +8,7 @@ project(424_Final_Project) # A project name. This can be anything.
 set(CMAKE_CXX_STANDARD 20) # Specify C++ version.
 
 include_directories(${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/lib/SDL)
-add_executable(${CMAKE_PROJECT_NAME} "Final_Project.cpp" "Final_Project.h" "logo.h" "Pilot.cpp" "Pilot.h")
+add_executable(${CMAKE_PROJECT_NAME} "Final_Project.cpp" "Final_Project.h" "logo.h" "Pilot.cpp" "Pilot.h" "Copilot.cpp" "Copilot.h" "Plane.cpp" "Plane.h" "Racing_Game.cpp" "Racing_Game.h")
 
 target_link_libraries(${CMAKE_PROJECT_NAME} ${CMAKE_SOURCE_DIR}/lib/SDL2d.lib ${CMAKE_SOURCE_DIR}/lib/SDL2maind.lib)
 set_target_properties( ${CMAKE_PROJECT_NAME} PROPERTIES
