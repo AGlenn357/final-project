@@ -1,25 +1,15 @@
-/*
-DiPerna, Glenn, Tyagi
-AERSP 424
-Final Project
-Main File
- */
-
 #include "Final_Project.h"
 #include "Pilot.h"
 #include "logo.h"
 #include "Plane.h"
-#include "Copilot.h"
+#include "CoPilot.h"
+#include "Racing_Game.h"
 #include <iostream>
 #include <string>
 #include <vector>
 #include <ctime>
 #include <cstdlib>
 #include <algorithm>
-#define SDL_MAIN_HANDLED
-#include <SDL.h>
-#include "Racing_Game.h"
-
 
 // function to convert entries to all lowercase for easy recognition
 std::string toLowerCase(const std::string& str) {
@@ -69,8 +59,8 @@ int main(int argc, char* argv[]) {
             std::cout << "Invalid plane model. Please choose from F-14, F-15ex, F-16, or F-18.\n";
         }
     }
+
     Plane playerPlane(chosenPlaneModel);
-    playerPlane.choosePlane();
 
     // Check if the chosen plane requires a co-pilot
     if (playerPlane.getRequiresCoPilot()) {
@@ -92,6 +82,19 @@ int main(int argc, char* argv[]) {
         }
         CoPilot playerCoPilot(chosenCoPilotName);
         playerCoPilot.chooseCoPilot();
+
+        // Create an instance of RacingGame and start the game with pilot, plane, and co-pilot
+        RacingGame racingGame;
+        racingGame.simulateRace(playerPilot, playerCoPilot, playerPlane);
+    }
+    else {
+        // Create a dummy CoPilot instance with all values set to 0
+        CoPilot dummyCoPilot("Dummy");
+        dummyCoPilot.chooseCoPilot();
+
+        // Create an instance of RacingGame and start the game with pilot and plane
+        RacingGame racingGame;
+        racingGame.simulateRace(playerPilot, dummyCoPilot, playerPlane);
     }
 
     return 0;
