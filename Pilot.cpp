@@ -50,4 +50,3 @@ void Pilot::choosePilot() {
         << "Accuracy: " << accuracy << "/10, "
         << "Handling: " << handling << "/10" << std::endl;
 }
-
