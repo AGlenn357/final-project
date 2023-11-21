@@ -87,31 +87,22 @@ bool RacingGame::isSpacePressed() {
 
 void RacingGame::calculateSpeeds(Pilot& pilot, CoPilot& coPilot, Plane& plane) {
     // Calculate left-to-right plane speed based on plane's maneuverability
-    l_r_plane_speed = plane.maneuverability * 0.6;
+    l_r_plane_speed = plane.getmaneuverability() * 0.6;
 
     // Check if the plane has a co-pilot
-    if (plane.requiresCoPilot) {
+    if (plane.getRequiresCoPilot()) {
         // Add contributions from co-pilot's reflexes and communication
         l_r_plane_speed = coPilot.getreflexes() * 0.3 + coPilot.getcommunication() * 0.5;
     }
 
     // Calculate forward plane speed based on plane's max speed, pilot's experience, and handling
-    forward_plane_speed = plane.maxSpeed * (5280.0 / 3600.0); // Convert maxSpeed from mph to ft/sec
+    forward_plane_speed = plane.getmaxSpeed() * (5280.0 / 3600.0); // Convert maxSpeed from mph to ft/sec
     forward_plane_speed /= 5000000; // Divide forward_plane_speed by 2500
     forward_plane_speed += 0.8 * pilot.getexperience() + 0.5 * pilot.gethandling(); // Add contributions from pilot's experience and handling
 
     // Check if the plane has a co-pilot
-    if (plane.requiresCoPilot) {
+    if (plane.getRequiresCoPilot()) {
         // Add contributions from co-pilot's experience
         forward_plane_speed += 0.8 * coPilot.getexperience();
     }
 }
-
-
-
-
-
-
-
-
-
