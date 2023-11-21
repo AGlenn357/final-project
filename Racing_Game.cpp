@@ -1,104 +1,115 @@
-#include "Final_Project.h"
-#include "Pilot.h"
-#include "logo.h"
-#include "Plane.h"
-#include "CoPilot.h"
-#include "Racing_Game.h"
 #include <iostream>
-#include <string>
-#include <vector>
-#include <ctime>
 #include <cstdlib>
-#include <algorithm>
+#include <ctime>
+#include "Racing_Game.h"
+#define _USE_MATH_DEFINES
+#include <cmath>
 
-// function to convert entries to all lowercase for easy recognition
-std::string toLowerCase(const std::string& str) {
-    std::string lowerCaseStr = str;
-    for (char& c : lowerCaseStr) {
-        c = tolower(c);
+class Target {
+public:
+    int position;
+
+    Target(int pos) : position(pos) {}
+};
+
+
+void RacingGame::simulateRace(Pilot& pilot, CoPilot& coPilot, Plane& plane) {
+    // Set the race distance to 30 miles
+    int raceDistance = 30;
+
+    // Calculate the number of iterations needed to cover the race distance
+    int iterations = (raceDistance * 5280) / forward_plane_speed; // Assuming 1 mile = 5280 units
+
+    // Set the initial position of the plane at the bottom
+    int planePosition = 10; // Assuming a 100-unit vertical space, adjust as needed
+    int planeHorizontalPosition = 40; // Initial horizontal position
+
+    for (int i = 0; i < iterations; ++i) {
+        // Handle player input
+        handleInput(pilot, planeHorizontalPosition);
+
+        // Simulate scrolling targets towards the plane at the calculated speed
+        for (double targetPosition = 0; targetPosition < planePosition; targetPosition += forward_plane_speed) {
+            // Draw the game elements
+            clearScreen();
+            drawTriangle(planeHorizontalPosition, planePosition);
+            drawCircle(targetPosition, 20, 5);
+
+        }
+
+        // Simulate shooting a projectile when the space bar is pressed
+        if (isSpacePressed()) {
+            std::cout << "Projectile shot!" << std::endl;
+            // Draw the projectile
+            drawProjectile(planeHorizontalPosition, planePosition);
+        }
+
+   
     }
-    return lowerCaseStr;
 }
 
-int main(int argc, char* argv[]) {
-    // Read and display the logo
-    read_logo();
-
-    // Let the player choose their pilot
-    std::string chosenPilotName;
-    while (true) {
-        std::cout << "Enter the name of your Pilot: (Maverick, Iceman, Rooster, Hangman) \n Pilot: ";
-        std::cin >> chosenPilotName;
-        chosenPilotName[0] = toupper(chosenPilotName[0]); // Convert the first letter to uppercase
-
-        // Check if the entered pilot name is valid
-        std::string lowerCasePilotName = toLowerCase(chosenPilotName);
-        if (lowerCasePilotName == "maverick" || lowerCasePilotName == "iceman" || lowerCasePilotName == "rooster" || lowerCasePilotName == "hangman") {
-            break; // Valid input, exit the loop
-        }
-        else {
-            std::cout << "Invalid pilot name. Please choose from Maverick, Iceman, Rooster, or Hangman.\n";
-        }
-    }
-    Pilot playerPilot(chosenPilotName);
-    playerPilot.choosePilot();
-
-    // Let the player choose their plane
-    std::string chosenPlaneModel;
-    while (true) {
-        std::cout << "Enter the model of your Plane: (F-14, F-15ex, F-16, F-18) \n Plane Model: ";
-        std::cin >> chosenPlaneModel;
-        chosenPlaneModel[0] = toupper(chosenPlaneModel[0]); // Convert the first letter to uppercase
-
-        // Check if the entered plane model is valid
-        std::string lowerCasePlaneModel = toLowerCase(chosenPlaneModel);
-        if (lowerCasePlaneModel == "f-14" || lowerCasePlaneModel == "f-15ex" || lowerCasePlaneModel == "f-16" || lowerCasePlaneModel == "f-18") {
-            break; // Valid input, exit the loop
-        }
-        else {
-            std::cout << "Invalid plane model. Please choose from F-14, F-15ex, F-16, or F-18.\n";
-        }
-    }
-
-    Plane playerPlane(chosenPlaneModel);
-
-    // Check if the chosen plane requires a co-pilot
-    if (playerPlane.getRequiresCoPilot()) {
-        // Let the player choose their co-pilot
-        std::string chosenCoPilotName;
-        while (true) {
-            std::cout << "Enter the name of your Co-Pilot: (Goose, Bob) \n Co-Pilot: ";
-            std::cin >> chosenCoPilotName;
-            chosenCoPilotName[0] = toupper(chosenCoPilotName[0]); // Convert the first letter to uppercase
-
-            // Check if the entered co-pilot name is valid
-            std::string lowerCaseCoPilotName = toLowerCase(chosenCoPilotName);
-            if (lowerCaseCoPilotName == "goose" || lowerCaseCoPilotName == "bob") {
-                break; // Valid input, exit the loop
-            }
-            else {
-                std::cout << "Invalid co-pilot name. Please choose from Goose or Bob.\n";
-            }
-        }
-        CoPilot playerCoPilot(chosenCoPilotName);
-        playerCoPilot.chooseCoPilot();
-
-        // Create an instance of RacingGame and start the game with pilot, plane, and co-pilot
-        RacingGame racingGame;
-        racingGame.simulateRace(playerPilot, playerCoPilot, playerPlane);
-    }
-    else {
-        // Create a dummy CoPilot instance with all values set to 0
-        CoPilot dummyCoPilot("Dummy");
-        dummyCoPilot.chooseCoPilot();
-
-        // Create an instance of RacingGame and start the game with pilot and plane
-        RacingGame racingGame;
-        racingGame.simulateRace(playerPilot, dummyCoPilot, playerPlane);
-    }
-
-    return 0;
+void RacingGame::drawTriangle(int x, int y) {
+    // Draw a triangle
+    std::cout << "  ^  " << std::endl;
+    std::cout << " / \\ " << std::endl;
+    std::cout << "/___\\" << std::endl;
 }
+
+void RacingGame::drawCircle(double x, double y, int radius) {
+    // Draw a circle
+    for (int i = 0; i <= 360; i += 10) {
+        double radians = i * 3.1415926535 / 180.0;
+        int circleX = static_cast<int>(x + radius * std::cos(radians));
+        int circleY = static_cast<int>(y + radius * std::sin(radians));
+        std::cout << "\033[" << circleY << ";" << circleX << "H" << "*";
+    }
+}
+
+void RacingGame::drawProjectile(int x, int y) {
+    // Draw a projectile (star)
+    std::cout << "\033[" << y << ";" << x << "H" << "*";
+}
+
+void RacingGame::clearScreen() {
+    // Clear the console screen
+    std::system("clear");
+}
+
+void RacingGame::handleInput(Pilot& pilot, int& planeHorizontalPosition) {
+    // Handle player input
+    // Implement your ASCII-based input handling logic here
+}
+
+bool RacingGame::isSpacePressed() {
+    // Implement your ASCII-based space bar check here
+    return false;
+}
+
+void RacingGame::calculateSpeeds(Pilot& pilot, CoPilot& coPilot, Plane& plane) {
+    // Calculate left-to-right plane speed based on plane's maneuverability
+    l_r_plane_speed = plane.maneuverability * 0.6;
+
+    // Check if the plane has a co-pilot
+    if (plane.requiresCoPilot) {
+        // Add contributions from co-pilot's reflexes and communication
+        l_r_plane_speed = coPilot.getreflexes() * 0.3 + coPilot.getcommunication() * 0.5;
+    }
+
+    // Calculate forward plane speed based on plane's max speed, pilot's experience, and handling
+    forward_plane_speed = plane.maxSpeed * (5280.0 / 3600.0); // Convert maxSpeed from mph to ft/sec
+    forward_plane_speed /= 5000000; // Divide forward_plane_speed by 2500
+    forward_plane_speed += 0.8 * pilot.getexperience() + 0.5 * pilot.gethandling(); // Add contributions from pilot's experience and handling
+
+    // Check if the plane has a co-pilot
+    if (plane.requiresCoPilot) {
+        // Add contributions from co-pilot's experience
+        forward_plane_speed += 0.8 * coPilot.getexperience();
+    }
+}
+
+
+
+
 
 
 
