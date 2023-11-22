@@ -61,6 +61,7 @@ int main(int argc, char* argv[]) {
     }
 
     Plane playerPlane(chosenPlaneModel);
+    playerPlane.choosePlane();
 
     // Check if the chosen plane requires a co-pilot
     if (playerPlane.getRequiresCoPilot()) {
