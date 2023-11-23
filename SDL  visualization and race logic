@@ -1,149 +1,466 @@
-#include <iostream>
-#include <ctime>
-#include <cstdlib>
+#include "Final_Project.h"
+
+#define SDL_MAIN_HANDLED
 #include <SDL.h>
 
-class Target {
-public:
-    int position;
+int SCREEN_WIDTH = 800;
+int SCREEN_HEIGHT = 600; 
 
-    Target(int pos) : position(pos) {}
-};
+// Function to render the plane
+void renderPlane(SDL_Renderer* renderer, Plane& plane) {
+    // Plane dimensions
+    const int planeWidth = 40;  // 0.5 inch (assuming 1 inch = 80 pixels)
+    const int planeHeight = 80; // 1 inch
 
-class RacingGame {
-private:
-    double forward_plane_speed; // Speed attribute for the RacingGame in ft/sec
-    double l_r_plane_speed;     // Left-to-right plane speed in ft/sec
+    // Calculate the position to center the plane at the bottom
+    int x = (SCREEN_WIDTH - planeWidth) / 2;
+    int y = SCREEN_HEIGHT - planeHeight;
 
-public:
-    RacingGame() : forward_plane_speed(0), l_r_plane_speed(0) {}
+    // Set the rendering color to blue
+    SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
 
-    // Function to simulate the racing logic
-    void simulateRace(Pilot& pilot, CoPilot& coPilot, Plane& plane) {
-        // Initialize SDL
-        if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-            std::cerr << "SDL initialization failed: " << SDL_GetError() << std::endl;
-            return;
+    // Draw a filled rectangle to represent the plane
+    SDL_Rect planeRect = { x, y, planeWidth, planeHeight };
+    SDL_RenderFillRect(renderer, &planeRect);
+}
+
+
+Target::Target(double x, double y, double r) : xPos(x), yPos(y), radius(r), hit(false) {}
+
+double Target::getX() const {
+    return xPos;
+}
+
+double Target::getY() const {
+    return yPos;
+}
+
+double Target::getRadius() const {
+    return radius;
+}
+
+bool Target::isHit() const {
+    return hit;
+}
+
+void Target::setHit(bool hit) {
+    this->hit = hit;
+}
+
+bool Target::isOutOfBounds() const {
+    // Implement the logic to check if the target is out of bounds
+    // For example, assuming the screen width is 800:
+    return xPos < 0 || xPos > 800 || yPos < 0 || yPos > 600;
+}
+
+
+
+// Constructor
+Projectile::Projectile(double x, double y, double s) : xPos(x), yPos(y), speed(s) {}
+
+// Getter methods
+double Projectile::getX() const { return xPos; }
+double Projectile::getY() const { return yPos; }
+double Projectile::getSpeed() const { return speed; }
+
+// Setter method for vertical position
+void Projectile::setY(double newY) { yPos = newY; }
+
+
+
+
+// Function to calculate lowercase string
+std::string toLowerCase(const std::string& str) {
+    std::string lowerCaseStr = str;
+    for (char& c : lowerCaseStr) {
+        c = tolower(c);
+    }
+    return lowerCaseStr;
+}
+
+// Function to calculate l_r_speed
+float calculateLRSpeed(Plane& plane, CoPilot& copilot) {
+    float l_r_speed = (plane.getmaxSpeed() * 17.6 / 120000) + (0.3 * plane.getmaneuverability());
+
+    // If the chosen plane needs a copilot, update l_r_speed
+    if (plane.getRequiresCoPilot()) {
+        l_r_speed += (copilot.getreflexes() * 0.2) + (copilot.getcommunication() * 0.1);
+    }
+
+    return l_r_speed;
+}
+
+// Function to calculate target_speed
+float calculateTargetSpeed(Plane& plane, Pilot& pilot, CoPilot& copilot) {
+    float target_speed = (plane.getmaxSpeed() * (17.6 / 60000)) + (0.8 * pilot.getexperience()) + (0.5 * pilot.gethandling());
+
+    // If the chosen plane requires a copilot, update target_speed
+    if (plane.getRequiresCoPilot()) {
+        target_speed += (0.8 * copilot.getexperience());
+    }
+
+    return target_speed;
+}
+
+// Function to calculate projectile_speed
+float calculateProjectileSpeed() {
+    return 0.3; // Assuming a constant projectile speed
+}
+
+// Function to calculate the probability of hitting a target based on pilot's accuracy
+bool calculateHitProbability(Pilot& pilot) {
+    // Generate a random value between 0 and 1
+    float randomValue = static_cast<float>(rand()) / RAND_MAX;
+
+    // Compare with pilot's accuracy to determine if the target is hit
+    return randomValue < (pilot.getaccuracy() / 10.0);
+}
+
+
+// Function to move the plane right
+void movePlaneRight(Plane & plane, CoPilot & copilot) {
+        // Calculate lateral speed using the provided function
+        float l_r_speed = calculateLRSpeed(plane, copilot);
+
+        // Get the current position of the plane
+        int currentX = plane.getHorizontalPosition();
+
+        // Calculate the new position based on the lateral speed
+        int newX = currentX + static_cast<int>(l_r_speed);
+
+        // Update the plane's position
+        plane.setHorizontalPosition(newX);
+    }
+
+// Function to move the plane left
+void movePlaneLeft(Plane& plane, CoPilot & copilot) {
+    float l_r_speed = calculateLRSpeed(plane, copilot);
+
+    // Get the current position of the plane
+    int currentX = plane.getHorizontalPosition();
+
+    // Calculate the new position based on the lateral speed
+    int newX = currentX - static_cast<int>(l_r_speed);
+
+    // Update the plane's position
+    plane.setHorizontalPosition(newX);
+}
+
+bool isSpacePressed() {
+    SDL_Event e;
+    while (SDL_PollEvent(&e) != 0) {
+        if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_SPACE) {
+            return true;
         }
+    }
+    return false;
+}
 
-        // Create SDL window
-        SDL_Window* window = SDL_CreateWindow("Racing Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_SHOWN);
-        if (!window) {
-            std::cerr << "SDL window creation failed: " << SDL_GetError() << std::endl;
-            SDL_Quit();
-            return;
+
+bool Target::isProjectileNear(double projectileX, double projectileY, double distanceSquaredThreshold) const {
+    // Calculate the distance between the target and the projectile
+    double dx = xPos - projectileX;
+    double dy = yPos - projectileY;
+    double distanceSquared = dx * dx + dy * dy;
+
+    // Check if the distance is less than or equal to the specified threshold
+    return distanceSquared <= distanceSquaredThreshold;
+}
+
+
+// Function to shoot a projectile
+void shootProjectile(int planeHorizontalPosition, std::vector<Projectile>& projectiles) {
+    // Check if the space bar is pressed
+    if (isSpacePressed()) {
+        // Calculate the speed of the projectile
+        float projectileSpeed = calculateProjectileSpeed();
+
+        // Create a new Projectile with the plane's horizontal position
+        projectiles.emplace_back(planeHorizontalPosition, 0, projectileSpeed);
+    }
+}
+
+// Function to update the targets' state
+void updateTargets(std::vector<Target>& targets) {
+    for (auto& target : targets) {
+        // Update the position or other properties of each target
+        // Example: target.setPosition(target.getX() + targetSpeed, target.getY());
+    }
+
+    // Remove targets that are out of bounds or have been hit
+    targets.erase(std::remove_if(targets.begin(), targets.end(),
+        [](const Target& target) {
+            return target.isOutOfBounds() || target.isHit();
+        }),
+        targets.end());
+}
+
+// Function to check collisions between a single projectile and target
+void checkCollisions(Target& target, Projectile& projectile, int& projectilesHit, double thresholdSquared, Pilot& pilot) {
+    // Check if the projectile is near the target
+    if (!target.isHit() && target.isProjectileNear(projectile.getX(), projectile.getY(), thresholdSquared)) {
+        // Determine if the hit is successful based on the pilot's accuracy
+        if (calculateHitProbability(pilot)) {
+            // Handle the successful hit (e.g., mark the target as hit)
+            target.setHit(true);
+            projectilesHit++;
         }
+    }
+}
 
-        // Set up SDL renderer
-        SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-        if (!renderer) {
-            std::cerr << "SDL renderer creation failed: " << SDL_GetError() << std::endl;
-            SDL_DestroyWindow(window);
-            SDL_Quit();
-            return;
+
+// Function to update game state
+void updateGameState(Pilot& pilot, Plane& plane, std::vector<Target>& targets, std::vector<Projectile>& projectiles, int& projectilesHit) {
+    // Assuming thresholdSquared is defined or passed as a constant value
+    double thresholdSquared = 0.5 * 0.5;
+
+    // Iterate over all projectiles
+    for (auto& projectile : projectiles) {
+        // Iterate over all targets
+        for (auto& target : targets) {
+            // Check for collisions between the current projectile and target
+            checkCollisions(target, projectile, projectilesHit, thresholdSquared, pilot);
         }
+    }
+}
 
-        // Set the race distance to 30 miles
-        int raceDistance = 30;
 
-        // Calculate the number of iterations needed to cover the race distance
-        int iterations = (raceDistance * 5280) / forward_plane_speed; // Assuming 1 mile = 5280 units
 
-        // Simulate racing logic here
-        std::cout << "Race simulation started with plane speed: " << plane.maxSpeed << " mph..." << std::endl;
+// In your main program file or where the game loop is
+void createNewTargets(std::vector<Target>& targets, std::chrono::steady_clock::time_point& lastTargetCreationTime, int targetCreationInterval) {
+    auto currentTime = std::chrono::steady_clock::now();
+    auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(currentTime - lastTargetCreationTime).count();
 
-        // Set the initial position of the plane at the bottom
-        int planePosition = 95; // Assuming a 100-unit vertical space, adjust as needed
-        int planeHorizontalPosition = 400; // Initial horizontal position
+    if (elapsedTime >= targetCreationInterval) {
+        // Create a new red target at the top of the screen
+        double targetX = rand() % 80; // Assuming 80 columns in the console
+        double targetY = 0; // Start at the top
+        double targetRadius = 0.5; // Half-inch radius
+        targets.emplace_back(targetX, targetY, targetRadius);
 
-        // SDL event structure for handling input
-        SDL_Event event;
+        // Update the last target creation time
+        lastTargetCreationTime = currentTime;
+    }
+}
 
-        // Simulate scrolling targets towards the plane at the calculated speed
-        for (int i = 0; i < iterations; ++i) {
-            handleInput(pilot, planeHorizontalPosition, event); // Handle player input
+// Assuming Target class has getX(), getY(), and getRadius() functions
 
-            // Simulate shooting a projectile when the space bar is pressed
-            if (isSpacePressed(event)) {
-                std::cout << "Projectile shot!" << std::endl;
-                // Check if the projectile hits the target
-                if (rand() % 100 < pilot.getaccuracy() * 20) {
-                    std::cout << "Target Hit!" << std::endl;
-                } else {
-                    std::cout << "Missed Target." << std::endl;
+void renderTargets(SDL_Renderer* renderer, const std::vector<Target>& targets) {
+    // Set the render color to red
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // R, G, B, Alpha
+
+    // Loop through each target and render
+    for (const auto& target : targets) {
+        // Draw a filled red circle for each target
+        SDL_Rect rect = { static_cast<int>(target.getX() - target.getRadius() * 0.5),
+                          static_cast<int>(target.getY() - target.getRadius() * 0.5),
+                          static_cast<int>(target.getRadius()), static_cast<int>(target.getRadius()) };
+
+        SDL_RenderFillRect(renderer, &rect);
+    }
+
+    // Reset render color to white
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // R, G, B, Alpha (white)
+}
+
+// Function to render the projectiles
+void renderProjectiles(SDL_Renderer* renderer, std::vector<Projectile>& projectiles) {
+    // Set the rendering color for projectiles
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // Red color for projectiles
+
+    // Assuming the dimensions of the square projectile are 20x20 pixels
+    const int projectileSize = 20;
+
+    // Iterate over projectiles and render them
+    for (auto& projectile : projectiles) {
+        // Update the vertical position of the projectile (move upward)
+        projectile.setY(projectile.getY() - projectile.getSpeed());
+
+        // Render the projectile as a square at its updated position
+        int x = static_cast<int>(projectile.getX());
+        int y = static_cast<int>(projectile.getY());
+
+        SDL_Rect projectileRect = { x, y, projectileSize, projectileSize };
+        SDL_RenderFillRect(renderer, &projectileRect);
+    }
+
+    // Remove projectiles that are out of bounds (off the top of the screen)
+    projectiles.erase(std::remove_if(projectiles.begin(), projectiles.end(),
+        [](const Projectile& projectile) { return projectile.getY() < 0; }),
+        projectiles.end());
+}
+
+
+int main(int argc, char* argv[]) {
+    // Read and display the logo
+    read_logo();
+
+    // Initialize SDL and create a window and renderer
+    SDL_Init(SDL_INIT_VIDEO);
+    SDL_Window* window = SDL_CreateWindow("Top Gun Simulator", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_SHOWN);
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+
+    // Declare and initialize vectors for targets and projectiles
+    std::vector<Target> targets;
+    std::vector<Projectile> projectiles;
+
+    // Other variables
+    std::chrono::steady_clock::time_point raceStartTime = std::chrono::steady_clock::now();  // Initialize raceStartTime
+    std::chrono::steady_clock::time_point raceEndTime;
+    std::chrono::steady_clock::time_point lastTargetCreationTime = raceStartTime;  // Initialize lastTargetCreationTime
+    int targetCreationInterval = 5;  // Example: Create a new target every 5 seconds
+    int projectilesHit = 0;
+
+    // Let the player choose their pilot
+    std::string chosenPilotName;
+    while (true) {
+        std::cout << "Enter the name of your Pilot: (Maverick, Iceman, Rooster, Hangman) \n Pilot: ";
+        std::cin >> chosenPilotName;
+        chosenPilotName[0] = toupper(chosenPilotName[0]); // Convert the first letter to uppercase
+
+        // Check if the entered pilot name is valid
+        std::string lowerCasePilotName = toLowerCase(chosenPilotName);
+        if (lowerCasePilotName == "maverick" || lowerCasePilotName == "iceman" || lowerCasePilotName == "rooster" || lowerCasePilotName == "hangman") {
+            break; // Valid input, exit the loop
+        }
+        else {
+            std::cout << "Invalid pilot name. Please choose from Maverick, Iceman, Rooster, or Hangman.\n";
+        }
+    }
+    Pilot playerPilot(chosenPilotName);
+    playerPilot.choosePilot();
+
+    // Let the player choose their plane
+    std::string chosenPlaneModel;
+    while (true) {
+        std::cout << "Enter the model of your Plane: (F-14, F-15ex, F-16, F-18) \n Plane Model: ";
+        std::cin >> chosenPlaneModel;
+        chosenPlaneModel[0] = toupper(chosenPlaneModel[0]); // Convert the first letter to uppercase
+
+        // Check if the entered plane model is valid
+        std::string lowerCasePlaneModel = toLowerCase(chosenPlaneModel);
+        if (lowerCasePlaneModel == "f-14" || lowerCasePlaneModel == "f-15ex" || lowerCasePlaneModel == "f-16" || lowerCasePlaneModel == "f-18") {
+            break; // Valid input, exit the loop
+        }
+        else {
+            std::cout << "Invalid plane model. Please choose from F-14, F-15ex, F-16, or F-18.\n";
+        }
+    }
+
+    Plane playerPlane(chosenPlaneModel);
+    playerPlane.choosePlane();
+
+
+    // Let the player choose their plane
+    std::string chosenCoPilotName;
+    while (true) {
+        std::cout << "Enter the name of your Co-Pilot: (Goose, Bob, No CoPilot) \n Co-Pilot: ";
+        std::cin >> chosenCoPilotName;
+        chosenCoPilotName[0] = toupper(chosenCoPilotName[0]); // Convert the first letter to uppercase
+
+        // Check if the entered plane model is valid
+        std::string lowerCaseCoPilotName = toLowerCase(chosenCoPilotName);
+        if (lowerCaseCoPilotName == "goose" || lowerCaseCoPilotName == "bob" || lowerCaseCoPilotName == "no copilot") {
+            break; // Valid input, exit the loop
+        }
+        else {
+            std::cout << "Invalid co-pilot name . Please choose from Goose, Bob, or no CoPilot.\n";
+        }
+    }
+
+    CoPilot playerCoPilot(chosenCoPilotName);
+    playerCoPilot.chooseCoPilot();
+
+    // Game loop
+    bool quit = false;
+    while (!quit) {
+        SDL_Event e;
+        while (SDL_PollEvent(&e) != 0) {
+            if (e.type == SDL_QUIT) {
+                quit = true;
+            }
+            else if (e.type == SDL_KEYDOWN) {
+                // Handle key presses
+                switch (e.key.keysym.sym) {
+                case SDLK_LEFT:
+                    movePlaneLeft(playerPlane, playerCoPilot);
+                    break;
+                case SDLK_RIGHT:
+                    movePlaneRight(playerPlane, playerCoPilot);
+                    break;
+                case SDLK_SPACE:
+                    // Pass the plane's horizontal position and projectiles vector
+                    shootProjectile(playerPlane.getHorizontalPosition(), projectiles);
+                    break;
+                    // Add more key handlers if needed
                 }
             }
-
-            // Simulate scrolling targets towards the plane at the calculated speed
-            for (double targetPosition = 0; targetPosition < planePosition; targetPosition += forward_plane_speed) {
-                // Display the scrolling targets and update game state
-                SDL_RenderClear(renderer);
-                SDL_RenderPresent(renderer);
-
-                // Introduce a short delay to make the simulation more readable
-                SDL_Delay(100);
-            }
         }
 
-        std::cout << "Race simulation completed." << std::endl;
+        // Create new targets
+        createNewTargets(targets, lastTargetCreationTime, targetCreationInterval);
 
-        // Cleanup SDL
-        SDL_DestroyRenderer(renderer);
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-    }
+        // Update the state of targets and projectiles
+        updateTargets(targets);
+        updateGameState(playerPilot, playerPlane, targets, projectiles, projectilesHit);
 
-    // Function to handle player input using SDL
-    void handleInput(Pilot& pilot, int& planeHorizontalPosition, SDL_Event& event) {
-        while (SDL_PollEvent(&event)) {
-            switch (event.type) {
-                case SDL_QUIT:
-                    // Handle quit event
-                    break;
-                case SDL_KEYDOWN:
-                    // Handle keydown event
-                    switch (event.key.keysym.sym) {
-                        case SDLK_LEFT:
-                            // Move left
-                            planeHorizontalPosition = std::max(planeHorizontalPosition - static_cast<int>(l_r_plane_speed), 0);
-                            break;
-                        case SDLK_RIGHT:
-                            // Move right
-                            planeHorizontalPosition = std::min(planeHorizontalPosition + static_cast<int>(l_r_plane_speed), 800);
-                            break;
-                        // Add other cases for additional controls if needed
-                    }
-                    break;
-                // Add other event handling cases if needed
-            }
-        }
-    }
+        // Render everything
+        SDL_RenderClear(renderer);
 
-    // Function to check if the space bar is pressed using SDL
-    bool isSpacePressed(SDL_Event& event) {
-        return (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_SPACE);
-    }
+        renderPlane(renderer, playerPlane);
+        renderTargets(renderer, targets);  // Assuming you have implemented this function
+        renderProjectiles(renderer, projectiles);
 
-    // Function to calculate left-to-right plane speed and forward plane speed
-    void calculateSpeeds(Pilot& pilot, CoPilot& coPilot, Plane& plane) {
-        // Calculate left-to-right plane speed based on plane's maneuverability
-        l_r_plane_speed = plane.maneuverability * 0.6;
+        SDL_RenderPresent(renderer);
 
-        // Check if the plane has a co-pilot
-        if (plane.requiresCoPilot) {
-            // Add contributions from co-pilot's reflexes and communication
-            l_r_plane_speed = coPilot.reflexes * 0.3 + coPilot.communication * 0.5;
+        // Check if the race is over
+        if (targets.empty()) {
+            raceEndTime = std::chrono::steady_clock::now();
+            quit = true;
         }
 
-        // Calculate forward plane speed based on plane's max speed, pilot's experience, and handling
-        forward_plane_speed = plane.maxSpeed * (5280.0 / 3600.0); // Convert maxSpeed from mph to ft/sec
-        forward_plane_speed /= 2500.0; // Divide forward_plane_speed by 2500
-        forward_plane_speed += 0.8 * pilot.getexperience() + 0.5 * pilot.gethandling(); // Add contributions from pilot's experience and handling
-
-        // Check if the plane has a co-pilot
-        if (plane.requiresCoPilot) {
-            // Add contributions from co-pilot's experience
-            forward_plane_speed += 0.8 * coPilot.experience;
-        }
+        // Add a delay to control frame rate (adjust as needed)
+        SDL_Delay(500);  // 500 milliseconds (0.5 seconds)
     }
-};
+
+    // Calculate race duration
+    auto duration = std::chrono::duration_cast<std::chrono::seconds>(raceEndTime - raceStartTime).count();
+
+    // Display results
+    std::cout << "Simulation Duration: " << duration << " seconds\n";
+    std::cout << "Projectiles Hit: " << projectilesHit << "\n";
+
+    // Cleanup SDL
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
