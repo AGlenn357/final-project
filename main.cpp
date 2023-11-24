@@ -1,6 +1,7 @@
 #include "Final_Project.h"
 #include "Pilot.h"
 #include "logo.h"
+#include "date_time.h"
 #include "Plane.h"
 #include "CoPilot.h"
 #include "Racing_Game.h"
@@ -23,6 +24,7 @@ std::string toLowerCase(const std::string& str) {
 int main(int argc, char* argv[]) {
     // Read and display the logo
     read_logo();
+    date_time();
 
     // Let the player choose their pilot
     std::string chosenPilotName;
