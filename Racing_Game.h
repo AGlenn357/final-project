@@ -4,6 +4,7 @@
 #include "Pilot.h"
 #include "CoPilot.h"
 #include "Plane.h"
+#include "Logo.h"
 
 class RacingGame {
 private:
@@ -12,7 +13,7 @@ private:
 
 public:
     // Function to simulate the racing logic with both pilot and copilot
-    void simulateRace(Pilot& pilot, CoPilot& coPilot, Plane& plane);
+    int simulateRace(Pilot& pilot, CoPilot& coPilot, Plane& plane);
 
     // Function to handle player input using ASCII
     void handleInput(Pilot& pilot, int& planeHorizontalPosition);
@@ -33,4 +34,10 @@ public:
     void drawProjectile(int x, int y);
 
     void clearScreen();
+    
+    int drawBoard(double target_x, double target_y, int triangle_x, int accuracy);
+    
+    std::vector<std::vector<int>> drawTarget(int x, int y);
+    
+    //void read_logo2();
 };
