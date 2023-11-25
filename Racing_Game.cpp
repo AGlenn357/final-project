@@ -4,105 +4,198 @@
 #include "Racing_Game.h"
 #define _USE_MATH_DEFINES
 #include <cmath>
+#include <random>
 
-class Target {
-public:
-    int position;
+int normal(double mean, double std) {
+    std::random_device rd{}; //random device
+    std::mt19937 gen{rd()}; //from homework assignment
+    std::normal_distribution<> d{mean, std}; //getting normal distribution
+    return d(gen); //returning answer
+}
 
-    Target(int pos) : position(pos) {}
-};
-
-
-void RacingGame::simulateRace(Pilot& pilot, CoPilot& coPilot, Plane& plane) {
-    // Set the race distance to 30 miles
-    int raceDistance = 30;
-
-    // Calculate the number of iterations needed to cover the race distance
-    int iterations = (raceDistance * 5280) / forward_plane_speed; // Assuming 1 mile = 5280 units
-
-    // Set the initial position of the plane at the bottom
-    int planePosition = 10; // Assuming a 100-unit vertical space, adjust as needed
-    int planeHorizontalPosition = 40; // Initial horizontal position
-
-    for (int i = 0; i < iterations; ++i) {
-        // Handle player input
-        handleInput(pilot, planeHorizontalPosition);
-
-        // Simulate scrolling targets towards the plane at the calculated speed
-        for (double targetPosition = 0; targetPosition < planePosition; targetPosition += forward_plane_speed) {
-            // Draw the game elements
-            clearScreen();
-            drawTriangle(planeHorizontalPosition, planePosition);
-            drawCircle(targetPosition, 20, 5);
-
-        }
-
-        // Simulate shooting a projectile when the space bar is pressed
-        if (isSpacePressed()) {
-            std::cout << "Projectile shot!" << std::endl;
-            // Draw the projectile
-            drawProjectile(planeHorizontalPosition, planePosition);
-        }
-
-   
+int RacingGame::simulateRace(Pilot& pilot, CoPilot& coPilot, Plane& plane) {
+    int handling = pilot.gethandling()+0.25*coPilot.getreflexes()+plane.getmaneuverability();
+    int accuracy = pilot.getaccuracy()+0.25*coPilot.getcommunication();
+    int accuracy_normal = 0.85*accuracy;
+    int speed_normal;
+    if (plane.getmodel() == "F-14") {
+        speed_normal = 3;
     }
-}
-
-void RacingGame::drawTriangle(int x, int y) {
-    // Draw a triangle
-    std::cout << "  ^  " << std::endl;
-    std::cout << " / \\ " << std::endl;
-    std::cout << "/___\\" << std::endl;
-}
-
-void RacingGame::drawCircle(double x, double y, int radius) {
-    // Draw a circle
-    for (int i = 0; i <= 360; i += 10) {
-        double radians = i * 3.1415926535 / 180.0;
-        int circleX = static_cast<int>(x + radius * std::cos(radians));
-        int circleY = static_cast<int>(y + radius * std::sin(radians));
-        std::cout << "\033[" << circleY << ";" << circleX << "H" << "*";
+    else if (plane.getmodel() == "F-15ex") {
+        speed_normal = 4;
     }
-}
+    else if (plane.getmodel() == "F-16") {
+        speed_normal = 2;
+    }
+    else if (plane.getmodel() == "F-18") {
+        speed_normal = 1;
+    }
+    else {
+        speed_normal = 1;
+    }
+    
+    std::cout << "Full Plane Conditions:"  << std::endl << "handling: " << handling << ", speed: " << speed_normal << ", accuracy: " << accuracy_normal << std::endl;
+    
+    int target_y = 2;
+    int pos = 50;
+    int maneuver = handling;
+    if (maneuver <= 0) {
+        maneuver = 1;
+    }
 
-void RacingGame::drawProjectile(int x, int y) {
-    // Draw a projectile (star)
-    std::cout << "\033[" << y << ";" << x << "H" << "*";
-}
-
-void RacingGame::clearScreen() {
-    // Clear the console screen
+    //int speed2;
+    int target_x = -1;
+    while (target_x <= 6 || target_x >= 94) {
+        target_x = normal(50, 20);
+    }
+    int n = 0;
+    std::string blank;
+    std:: cout << "Enter any key for the game to begin." << std::endl;
+    std:: cin >> blank;
     std::system("clear");
-}
-
-void RacingGame::handleInput(Pilot& pilot, int& planeHorizontalPosition) {
-    // Handle player input
-    // Implement your ASCII-based input handling logic here
-}
-
-bool RacingGame::isSpacePressed() {
-    // Implement your ASCII-based space bar check here
-    return false;
-}
-
-void RacingGame::calculateSpeeds(Pilot& pilot, CoPilot& coPilot, Plane& plane) {
-    // Calculate left-to-right plane speed based on plane's maneuverability
-    l_r_plane_speed = plane.getmaneuverability() * 0.6;
-
-    // Check if the plane has a co-pilot
-    if (plane.getRequiresCoPilot()) {
-        // Add contributions from co-pilot's reflexes and communication
-        l_r_plane_speed = coPilot.getreflexes() * 0.3 + coPilot.getcommunication() * 0.5;
+    auto start1 = std::chrono::steady_clock::now();
+    while (n < 5) {
+        char s;
+        read_logo();
+        int nn = drawBoard(target_x, target_y, pos, accuracy_normal);
+        if (nn == 1) {
+            std::system("clear");
+            std::cout<<"Game Over: You crashed."<<std::endl << std::endl << std::endl <<std::endl;
+            break;
+        }
+        std::cout << "time: " << std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - start1).count() << std::endl;
+        if (nn == 1) {
+            break;
+        }
+        std::cin>>s;
+        if (s == 's') {
+            pos = pos - maneuver;
+            if (pos < 3) {
+                pos = 3;
+            }
+        }
+        else if (s == 'd') {
+            pos = pos + maneuver;
+            if (pos > 96) {
+                pos = 96;
+            }
+        }
+        else if (s == 'e') {
+            speed_normal++;
+        }
+        else if (s == 'c') {
+            speed_normal--;
+        }
+        else if (s == 'j') {
+            pos--;
+        }
+        else if (s == 'k') {
+            pos++;
+        }
+        std::system("Clear");
+        target_y = target_y + speed_normal;
+        if (target_y > 30 && abs(target_x-pos) <= accuracy-3) {
+            target_y = 2;
+            target_x = normal(50,35);
+            n++;
+            while (target_x <= 6 || target_x >= 94) {
+                target_x = normal(50, 20);
+            }
+        }
     }
-
-    // Calculate forward plane speed based on plane's max speed, pilot's experience, and handling
-    forward_plane_speed = plane.getmaxSpeed() * (5280.0 / 3600.0); // Convert maxSpeed from mph to ft/sec
-    forward_plane_speed /= 5000000; // Divide forward_plane_speed by 2500
-    forward_plane_speed += 0.8 * pilot.getexperience() + 0.5 * pilot.gethandling(); // Add contributions from pilot's experience and handling
-
-    // Check if the plane has a co-pilot
-    if (plane.getRequiresCoPilot()) {
-        // Add contributions from co-pilot's experience
-        forward_plane_speed += 0.8 * coPilot.getexperience();
+    if (n == 5) {
+        std::cout << "time: " << std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - start1).count() << " seconds" << std::endl;
+        return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - start1).count();
     }
+    else {
+        return 10000; //returning insanely high time
+    }
+}
+
+std::vector <std::vector<int>> RacingGame::drawTarget(int x, int y) {
+    std::vector <std::vector<int>> pairs2;
+    pairs2.push_back({x-4,x-3, x-2, x-1, x, x+1, x+2, x+3,x+4});
+    pairs2.push_back({y-1, y});
+
+    return pairs2;
+}
+
+int RacingGame::drawBoard(double target_x, double target_y, int triangle_x, int accuracy) {
+    int nn = 0;
+    int triangle_y = 28;
+    
+    for (int i = 0; i <= 100; i++) {
+        std:: cout << "_";
+    }
+    std:: cout << "\n";
+    
+    std::vector<std::vector<int>> pairs;
+    pairs = drawTarget(target_x, target_y);
+    
+    //checking if the plane is hitting the obstacle
+    if (abs(target_x-triangle_x) > accuracy && target_y == 27) {
+        nn = 1;
+    }
+    else if (abs(target_x-triangle_x) > accuracy-2 && target_y == 28) {
+        nn = 1;
+    }
+    else if (abs(target_x-triangle_x) > accuracy-3 && target_y == 29) {
+        nn = 1;
+    }
+    else if (abs(target_x-triangle_x) > accuracy-3 && target_y >= 30) {
+        nn = 1;
+    }
+    else { //if plane is not hitting the obstacle plot results
+        for (int i = 0; i < 30; i++) {
+            std::cout<<"|";
+            for (int j = 0; j < 99; j++) {
+                int n = 0;
+                for (int k = 0; k < pairs[1].size(); k++) {
+                    for (int l = 0; l < pairs[0].size(); l++) {
+                        if(pairs[1][k] == i && abs(target_x - j) >= accuracy && n == 0) {
+                            std::cout << "#";
+                            n = 1;
+                        }
+                    }
+                }
+                if (j == triangle_x && i == triangle_y-1) {
+                    std::cout<< "^";
+                    n = 1;
+                }
+                else if (j == triangle_x-1 && i == triangle_y) {
+                    std::cout << "/";
+                    n = 1;
+                }
+                else if (j == triangle_x+1 && i == triangle_y) {
+                    std::cout << "\\";
+                    n = 1;
+                }
+                else if (j == triangle_x-2 && i == triangle_y+1) {
+                    std::cout<<"/";
+                    n = 1;
+                }
+                else if (j == triangle_x+2 && i == triangle_y+1) {
+                    std::cout<<"\\";
+                    n = 1;
+                }
+                else if (j == triangle_x-1 && i == triangle_y+1) {
+                    std::cout<<"_";
+                    n = 1;
+                }
+                else if (j == triangle_x && i == triangle_y+1) {
+                    std::cout<<"_";
+                    n = 1;
+                }
+                else if (j == triangle_x+1 && i == triangle_y+1) {
+                    std::cout<<"_";
+                    n = 1;
+                }
+                if (n == 0) {
+                    std::cout << " ";
+                }
+            }
+            std::cout << "|" << "\n";
+        }
+    }
+    return nn; //return nn, nn is 1 if the plane crashed
 }
