@@ -2,7 +2,6 @@
 //  Logo.cpp
 //  final project
 //
-//  Created by Andrew Glenn on 11/24/23.
 //
 
 #include <iostream>
