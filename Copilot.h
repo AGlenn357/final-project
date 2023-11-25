@@ -1,3 +1,4 @@
+// CoPilot.h
 #pragma once
 
 #include <iostream>
@@ -21,4 +22,3 @@ public:
 
     void chooseCoPilot() const;
 };
-
