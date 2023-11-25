@@ -1,8 +1,16 @@
+// CoPilot.cpp
 #include "CoPilot.h"
 
+// Default constructor for the dummy copilot
+//CoPilot::CoPilot() : name("Dummy"), experience(0), communication(0), reflexes(0) {}
+
+// Constructor for named copilots
 CoPilot::CoPilot(const std::string& x) {
     name = x;
-
+    
+    if (x == "Dummy") {
+        std::tie(experience, communication, reflexes) = std::make_tuple(0, 0, 0);
+    }
     // Assuming initial values for each co-pilot
     if (x == "Goose") {
         std::tie(experience, communication, reflexes) = std::make_tuple(7, 8, 7);
