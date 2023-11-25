@@ -1,24 +1,43 @@
-// Plane.h
-#pragma once
+// Plane.cpp
+#include "Plane.h"
 
-#include <iostream>
-#include <string>
-#include <tuple>
+Plane::Plane(const std::string& m) {
+    model = m;
 
-class Plane {
-private:
-    std::string model;
-    int maxSpeed;
-    bool requiresCoPilot;
-    int maneuverability;
+    // Assuming initial values for each plane
+    if (m == "F-14") {
+        std::tie(maxSpeed, requiresCoPilot, maneuverability) = std::make_tuple(1544, true, 3);
+    }
+    else if (m == "F-15ex") {
+        std::tie(maxSpeed, requiresCoPilot, maneuverability) = std::make_tuple(1875, true, 2);
+    }
+    else if (m == "F-16") {
+        std::tie(maxSpeed, requiresCoPilot, maneuverability) = std::make_tuple(1500, false, 5);
+    }
+    else if (m == "F-18") {
+        std::tie(maxSpeed, requiresCoPilot, maneuverability) = std::make_tuple(1187, false, 4);
+    }
+}
 
-public:
-    Plane(const std::string& m);
+std::string Plane::getmodel() const {
+    return model;
+}
 
-    std::string getmodel() const;
-    int getmaxSpeed() const;
-    bool getRequiresCoPilot() const;
-    int getmaneuverability() const;
+int Plane::getmaxSpeed() const {
+    return maxSpeed;
+}
 
-    void choosePlane() const;
-};
+bool Plane::getRequiresCoPilot() const {
+    return requiresCoPilot;
+}
+
+int Plane::getmaneuverability() const {
+    return maneuverability;
+}
+
+void Plane::choosePlane() const {
+    std::cout << "Selected Plane: " << model << std::endl;
+    std::cout << "Max Speed: " << maxSpeed << " mph, "
+        << "Requires Co-Pilot: " << (requiresCoPilot ? "Yes" : "No") << ", "
+        << "Maneuverability: " << maneuverability << "/5" << std::endl;
+}
